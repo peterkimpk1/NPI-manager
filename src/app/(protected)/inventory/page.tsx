@@ -25,7 +25,7 @@ export default async function InventoryPage() {
           <p className="text-[var(--text-secondary)]">Non-Product Inventory Tracking</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="secondary" className="bg-[var(--bg-tertiary)] border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-card)]">
+          <Button variant="secondary" className="cursor-pointer bg-bg-tertiary border-border text-text-primary hover:bg-bg-card hover:border-border-hover transition-colors duration-200">
             <Download className="w-4 h-4 mr-2" />
             Export
           </Button>

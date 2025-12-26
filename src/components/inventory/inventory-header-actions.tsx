@@ -35,7 +35,7 @@ export function InventoryHeaderActions({
         <Button
           variant="outline"
           onClick={() => setShowReview(true)}
-          className="border-[var(--accent-yellow)] text-[var(--accent-yellow)] hover:bg-[var(--accent-yellow)]/10"
+          className="cursor-pointer border-[var(--accent-yellow)] text-[var(--accent-yellow)] hover:bg-[var(--accent-yellow)]/10"
         >
           <AlertCircle className="h-4 w-4 mr-2" />
           Review Queue ({reviewCount})
@@ -43,7 +43,7 @@ export function InventoryHeaderActions({
       )}
       <Button
         onClick={() => setShowAddDialog(true)}
-        className="bg-gradient-to-r from-cyan-500 to-cyan-600 text-white shadow-lg shadow-cyan-500/30"
+        className="cursor-pointer bg-gradient-to-r from-cyan-500 to-cyan-600 text-white shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 hover:-translate-y-0.5 transition-all duration-200"
       >
         <Plus className="w-4 h-4 mr-2" />
         Add Item

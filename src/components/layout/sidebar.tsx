@@ -62,7 +62,7 @@ export function Sidebar() {
 
   return (
     <aside className="hidden md:flex w-64 flex-col bg-bg-secondary border-r border-border-custom min-h-screen">
-      <div className="p-6 border-b border-border-custom">
+      <div className="h-16 px-6 border-b border-border-custom flex items-center">
         <Link href="/dashboard" className="flex items-center gap-2">
           <span className="text-xl font-bold text-accent-cyan font-display">NPI Manager</span>
         </Link>

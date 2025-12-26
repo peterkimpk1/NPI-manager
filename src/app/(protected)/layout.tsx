@@ -17,15 +17,13 @@ export default async function ProtectedLayout({
   const profile = await getProfile()
 
   return (
-    <div className="min-h-screen bg-bg-primary">
-      <div className="flex">
-        <Sidebar />
-        <div className="flex-1 flex flex-col min-h-screen">
-          <Header user={user} profile={profile} />
-          <main className="flex-1 p-6">
-            {children}
-          </main>
-        </div>
+    <div className="min-h-screen bg-bg-primary flex">
+      <Sidebar />
+      <div className="flex-1 flex flex-col">
+        <Header user={user} profile={profile} />
+        <main className="flex-1 p-6">
+          {children}
+        </main>
       </div>
     </div>
   )

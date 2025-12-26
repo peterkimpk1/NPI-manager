@@ -40,6 +40,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/mockups/*
-/sprints/*
-data/*supabase/.temp/
+# Local mockups and sprint docs
+/mockups/
+/sprints/
+public/mockups/
+public/sprints/
+
+# Local data
+data/
+supabase/.temp/
