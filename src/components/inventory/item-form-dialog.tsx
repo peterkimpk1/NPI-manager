@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useEffect } from 'react'
+import { useActionState, useEffect, useState, useMemo } from 'react'
 import { createNpiItem, updateNpiItem, type ActionState } from '@/lib/actions/inventory'
 import {
   Dialog,
@@ -19,12 +19,13 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Loader2 } from 'lucide-react'
-import type { NpiItem, Category, Location } from '@/types/inventory'
+import type { NpiItem, Category, Location, SubCategory } from '@/types/inventory'
 import { toast } from 'sonner'
 
 interface ItemFormDialogProps {
   item?: NpiItem | null
   categories: Category[]
+  subCategories: SubCategory[]
   locations: Location[]
   onClose: () => void
   open?: boolean
@@ -33,6 +34,7 @@ interface ItemFormDialogProps {
 export function ItemFormDialog({
   item,
   categories,
+  subCategories,
   locations,
   onClose,
   open
@@ -43,6 +45,24 @@ export function ItemFormDialog({
     : createNpiItem
 
   const [state, formAction, pending] = useActionState(action, {} as ActionState)
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>(
+    item?.category_id ?? undefined
+  )
+  const [count, setCount] = useState<number>(item?.count ?? 0)
+  const [unitCost, setUnitCost] = useState<number>(item?.unit_cost ?? 0)
+
+  // Filter sub-categories based on selected category
+  const filteredSubCategories = useMemo(() => {
+    if (!selectedCategoryId) return []
+    return subCategories.filter(sc => sc.category_id === selectedCategoryId)
+  }, [subCategories, selectedCategoryId])
+
+  // Calculate stock value
+  const stockValue = count * unitCost
+
+  const formatCurrency = (value: number) => {
+    return value >= 1 ? `$${value.toFixed(2)}` : `$${value.toFixed(3)}`
+  }
 
   useEffect(() => {
     if (state.success) {
@@ -53,6 +73,13 @@ export function ItemFormDialog({
       toast.error(state.error)
     }
   }, [state, onClose])
+
+  // Reset state when item changes
+  useEffect(() => {
+    setSelectedCategoryId(item?.category_id ?? undefined)
+    setCount(item?.count ?? 0)
+    setUnitCost(item?.unit_cost ?? 0)
+  }, [item])
 
   const isOpen = open !== undefined ? open : !!item
 
@@ -80,13 +107,36 @@ export function ItemFormDialog({
 
             <div className="space-y-2">
               <Label htmlFor="category_id" className="text-[var(--text-secondary)]">Category *</Label>
-              <Select name="category_id" defaultValue={item?.category_id ?? undefined} required>
+              <Select
+                name="category_id"
+                defaultValue={item?.category_id ?? undefined}
+                required
+                onValueChange={(value) => setSelectedCategoryId(value)}
+              >
                 <SelectTrigger className="bg-[var(--bg-tertiary)] border-[var(--border)] text-[var(--text-primary)]">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent className="bg-[var(--bg-card)] border-[var(--border)]">
                   {categories.map((cat) => (
                     <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="sub_category_id" className="text-[var(--text-secondary)]">Sub-Category</Label>
+              <Select
+                name="sub_category_id"
+                defaultValue={item?.sub_category_id ?? undefined}
+                disabled={filteredSubCategories.length === 0}
+              >
+                <SelectTrigger className="bg-[var(--bg-tertiary)] border-[var(--border)] text-[var(--text-primary)]">
+                  <SelectValue placeholder={filteredSubCategories.length === 0 ? "Select category first" : "Select sub-category"} />
+                </SelectTrigger>
+                <SelectContent className="bg-[var(--bg-card)] border-[var(--border)]">
+                  {filteredSubCategories.map((subCat) => (
+                    <SelectItem key={subCat.id} value={subCat.id}>{subCat.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -107,20 +157,6 @@ export function ItemFormDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="count" className="text-[var(--text-secondary)]">Current Count *</Label>
-              <Input
-                id="count"
-                name="count"
-                type="number"
-                min="0"
-                step="any"
-                required
-                defaultValue={item?.count ?? 0}
-                className="bg-[var(--bg-tertiary)] border-[var(--border)] text-[var(--text-primary)] font-mono"
-              />
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="uom" className="text-[var(--text-secondary)]">Unit of Measure *</Label>
               <Input
                 id="uom"
@@ -133,6 +169,21 @@ export function ItemFormDialog({
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="count" className="text-[var(--text-secondary)]">Current Count *</Label>
+              <Input
+                id="count"
+                name="count"
+                type="number"
+                min="0"
+                step="any"
+                required
+                defaultValue={item?.count ?? 0}
+                onChange={(e) => setCount(parseFloat(e.target.value) || 0)}
+                className="bg-[var(--bg-tertiary)] border-[var(--border)] text-[var(--text-primary)] font-mono"
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="desired_count" className="text-[var(--text-secondary)]">Desired Count</Label>
               <Input
                 id="desired_count"
@@ -141,6 +192,34 @@ export function ItemFormDialog({
                 min="0"
                 step="any"
                 defaultValue={item?.desired_count ?? ''}
+                className="bg-[var(--bg-tertiary)] border-[var(--border)] text-[var(--text-primary)] font-mono"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="unit_cost" className="text-[var(--text-secondary)]">Unit Cost ($) *</Label>
+              <Input
+                id="unit_cost"
+                name="unit_cost"
+                type="number"
+                min="0"
+                step="0.001"
+                required
+                defaultValue={item?.unit_cost ?? 0}
+                onChange={(e) => setUnitCost(parseFloat(e.target.value) || 0)}
+                className="bg-[var(--bg-tertiary)] border-[var(--border)] text-[var(--text-primary)] font-mono"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="pkg_size" className="text-[var(--text-secondary)]">Package Size</Label>
+              <Input
+                id="pkg_size"
+                name="pkg_size"
+                type="number"
+                min="0"
+                step="any"
+                defaultValue={item?.pkg_size ?? ''}
                 className="bg-[var(--bg-tertiary)] border-[var(--border)] text-[var(--text-primary)] font-mono"
               />
             </div>
@@ -159,20 +238,6 @@ export function ItemFormDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="unit_cost" className="text-[var(--text-secondary)]">Unit Cost ($) *</Label>
-              <Input
-                id="unit_cost"
-                name="unit_cost"
-                type="number"
-                min="0"
-                step="0.001"
-                required
-                defaultValue={item?.unit_cost ?? 0}
-                className="bg-[var(--bg-tertiary)] border-[var(--border)] text-[var(--text-primary)] font-mono"
-              />
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="gram_conversion" className="text-[var(--text-secondary)]">
                 Gram Conversion
                 <span className="text-[var(--text-muted)] text-xs ml-1">(for ingredients)</span>
@@ -186,6 +251,14 @@ export function ItemFormDialog({
                 defaultValue={item?.gram_conversion ?? ''}
                 className="bg-[var(--bg-tertiary)] border-[var(--border)] text-[var(--text-primary)] font-mono"
               />
+            </div>
+
+            <div className="col-span-2 space-y-2">
+              <Label className="text-[var(--text-secondary)]">Stock Value</Label>
+              <div className="px-3 py-2 bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-md font-mono text-purple-500 font-semibold">
+                {formatCurrency(stockValue)}
+              </div>
+              <p className="text-xs text-[var(--text-muted)]">Calculated from Count × Unit Cost</p>
             </div>
 
           </div>

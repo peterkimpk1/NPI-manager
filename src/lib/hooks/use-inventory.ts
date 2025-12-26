@@ -9,6 +9,20 @@ export function useInventory(initialItems: NpiItem[]) {
   const [isLoading, setIsLoading] = useState(false)
   const supabase = useMemo(() => createClient(), [])
 
+  async function refetch() {
+    setIsLoading(true)
+    try {
+      const { data } = await supabase
+        .from('npi_items_view')
+        .select('*')
+        .eq('is_active', true)
+        .order('name')
+      if (data) setItems(data as NpiItem[])
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   useEffect(() => {
     const channel = supabase
       .channel('npi_items_changes')
@@ -17,17 +31,17 @@ export function useInventory(initialItems: NpiItem[]) {
         { event: '*', schema: 'public', table: 'npi_items' },
         async (payload) => {
           if (payload.eventType === 'INSERT') {
-            // Fetch with joins
+            // Fetch from view to get denormalized data
             const { data } = await supabase
-              .from('npi_items')
-              .select('*, category:categories(*), location:locations(*)')
+              .from('npi_items_view')
+              .select('*')
               .eq('id', payload.new.id)
               .single()
             if (data) setItems(prev => [...prev, data as NpiItem])
           } else if (payload.eventType === 'UPDATE') {
             const { data } = await supabase
-              .from('npi_items')
-              .select('*, category:categories(*), location:locations(*)')
+              .from('npi_items_view')
+              .select('*')
               .eq('id', payload.new.id)
               .single()
             if (data) {
@@ -47,7 +61,7 @@ export function useInventory(initialItems: NpiItem[]) {
     }
   }, [supabase])
 
-  return { items, setItems, isLoading }
+  return { items, setItems, isLoading, refetch }
 }
 
 export function getStockStatus(count: number, desired?: number | null): StockStatus {
@@ -73,6 +87,11 @@ export function filterItems(
 
     // Category filter
     if (filters.category && item.category_id !== filters.category) {
+      return false
+    }
+
+    // Sub-category filter
+    if (filters.subCategory && item.sub_category_id !== filters.subCategory) {
       return false
     }
 

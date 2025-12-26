@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { npiItemSchema, restockSchema, adjustStockSchema } from '@/lib/validations/inventory'
-import type { NpiItem, Category, Location, InventoryStats } from '@/types/inventory'
+import type { NpiItem, Category, Location, SubCategory, InventoryStats } from '@/types/inventory'
 
 export type ActionState = {
   error?: string
@@ -33,10 +33,21 @@ export async function getLocations(): Promise<Location[]> {
   return data || []
 }
 
+export async function getSubCategories(): Promise<SubCategory[]> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('sub_categories')
+    .select('*')
+    .order('name')
+
+  if (error) throw error
+  return data || []
+}
+
 export async function getInventoryItems(): Promise<NpiItem[]> {
   const supabase = await createClient()
   const { data, error } = await supabase
-    .from('npi_items')
+    .from('npi_items_view')
     .select('*')
     .eq('is_active', true)
     .order('name')
@@ -80,9 +91,11 @@ export async function createNpiItem(
   const rawData = {
     name: formData.get('name'),
     category_id: formData.get('category_id'),
+    sub_category_id: formData.get('sub_category_id') || null,
     location_id: formData.get('location_id'),
     count: formData.get('count'),
     uom: formData.get('uom'),
+    pkg_size: formData.get('pkg_size') || null,
     desired_count: formData.get('desired_count') || null,
     reorder_point: formData.get('reorder_point') || null,
     unit_cost: formData.get('unit_cost'),
@@ -143,9 +156,11 @@ export async function updateNpiItem(
   const rawData = {
     name: formData.get('name'),
     category_id: formData.get('category_id'),
+    sub_category_id: formData.get('sub_category_id') || null,
     location_id: formData.get('location_id'),
     count: formData.get('count'),
     uom: formData.get('uom'),
+    pkg_size: formData.get('pkg_size') || null,
     desired_count: formData.get('desired_count') || null,
     reorder_point: formData.get('reorder_point') || null,
     unit_cost: formData.get('unit_cost'),
