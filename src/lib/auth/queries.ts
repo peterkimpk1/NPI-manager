@@ -25,7 +25,7 @@ export async function getProfile(): Promise<Profile | null> {
     .eq('id', user.id)
     .single()
 
-  return profile
+  return profile as Profile | null
 }
 
 export async function hasRole(allowedRoles: UserRole[]): Promise<boolean> {
