@@ -8,25 +8,38 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-display: "Outfit", sans-serif;
+  --font-mono: var(--font-jetbrains-mono), var(--font-geist-mono);
+  --font-display: var(--font-outfit), "Outfit", sans-serif;
 
   /* Custom bg colors */
-  --color-bg-primary: #0a0a0b;
-  --color-bg-secondary: #111113;
-  --color-bg-tertiary: #1a1a1d;
-  --color-bg-card: #151517;
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-tertiary: var(--bg-tertiary);
+  --color-bg-card: var(--bg-card);
 
   /* Custom border colors */
-  --color-border-custom: #2a2a2e;
-  --color-border-hover: #3a3a40;
+  --color-border-custom: var(--border-custom);
+  --color-border-hover: var(--border-hover);
 
   /* Custom accent colors */
-  --color-accent-cyan: #06b6d4;
-  --color-accent-green: #22c55e;
-  --color-accent-yellow: #eab308;
-  --color-accent-red: #ef4444;
-  --color-accent-purple: #8b5cf6;
+  --color-accent-cyan: var(--accent-cyan);
+  --color-accent-green: var(--accent-green);
+  --color-accent-yellow: var(--accent-yellow);
+  --color-accent-red: var(--accent-red);
+  --color-accent-purple: var(--accent-purple);
+
+  /* Accent dim variants */
+  --color-accent-cyan-dim: var(--accent-cyan-dim);
+  --color-accent-green-dim: var(--accent-green-dim);
+  --color-accent-yellow-dim: var(--accent-yellow-dim);
+  --color-accent-red-dim: var(--accent-red-dim);
+  --color-accent-purple-dim: var(--accent-purple-dim);
+
+  /* Text colors */
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -67,71 +80,172 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+
+  /* 
+   * LIGHT THEME: Industrial Clipboard
+   * Warm paper-like backgrounds with slate ink and burnt orange accents.
+   * Feels like a quality control document on a warehouse clipboard.
+   */
+
+  /* Core backgrounds - warm paper tones */
+  --background: #f8f6f1;
+  --foreground: #1c1f26;
+  --card: #ffffff;
+  --card-foreground: #1c1f26;
+  --popover: #ffffff;
+  --popover-foreground: #1c1f26;
+
+  /* Custom NPI backgrounds */
+  --bg-primary: #f8f6f1;
+  --bg-secondary: #f0ede5;
+  --bg-tertiary: #e8e4db;
+  --bg-card: #ffffff;
+
+  /* Border colors - warm grays */
+  --border: #d4d0c8;
+  --border-custom: #d4d0c8;
+  --border-hover: #b8b4ab;
+  --input: #d4d0c8;
+  --ring: #9a958c;
+
+  /* Primary - deep slate ink */
+  --primary: #2c3340;
+  --primary-foreground: #f8f6f1;
+
+  /* Secondary - warm stone */
+  --secondary: #e8e4db;
+  --secondary-foreground: #2c3340;
+
+  /* Muted - dusty beige */
+  --muted: #e8e4db;
+  --muted-foreground: #6b6660;
+
+  /* Accent - burnt orange industrial */
+  --accent: #e8e4db;
+  --accent-foreground: #2c3340;
+
+  /* Text hierarchy */
+  --text-primary: #1c1f26;
+  --text-secondary: #4a4f5a;
+  --text-muted: #7d827a;
+
+  /* Destructive - warm red */
+  --destructive: #c53030;
+
+  /* Status accents - richer, warmer versions for light mode */
+  --accent-cyan: #0284a8;
+  --accent-green: #16803c;
+  --accent-yellow: #b78b00;
+  --accent-red: #c53030;
+  --accent-purple: #6d4c9f;
+
+  /* Accent dim backgrounds - warm tinted */
+  --accent-cyan-dim: rgba(2, 132, 168, 0.12);
+  --accent-green-dim: rgba(22, 128, 60, 0.12);
+  --accent-yellow-dim: rgba(183, 139, 0, 0.12);
+  --accent-red-dim: rgba(197, 48, 48, 0.12);
+  --accent-purple-dim: rgba(109, 76, 159, 0.12);
+
+  /* Charts - warm industrial palette */
+  --chart-1: #c45d2e;
+  --chart-2: #0284a8;
+  --chart-3: #16803c;
+  --chart-4: #b78b00;
+  --chart-5: #6d4c9f;
+
+  /* Sidebar - warm paper */
+  --sidebar: #f0ede5;
+  --sidebar-foreground: #1c1f26;
+  --sidebar-primary: #2c3340;
+  --sidebar-primary-foreground: #f8f6f1;
+  --sidebar-accent: #e8e4db;
+  --sidebar-accent-foreground: #2c3340;
+  --sidebar-border: #d4d0c8;
+  --sidebar-ring: #9a958c;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* 
+   * DARK THEME: Industrial Control Room
+   * The original NPI Manager aesthetic - near-black with cyan accents.
+   * Precision-focused for facility environments.
+   */
+
+  /* Core backgrounds - deep blacks */
+  --background: #0a0a0b;
+  --foreground: #fafafa;
+  --card: #151517;
+  --card-foreground: #fafafa;
+  --popover: #151517;
+  --popover-foreground: #fafafa;
+
+  /* Custom NPI backgrounds */
+  --bg-primary: #0a0a0b;
+  --bg-secondary: #111113;
+  --bg-tertiary: #1a1a1d;
+  --bg-card: #151517;
+
+  /* Border colors */
+  --border: rgba(255, 255, 255, 0.1);
+  --border-custom: #2a2a2e;
+  --border-hover: #3a3a40;
+  --input: rgba(255, 255, 255, 0.15);
+  --ring: #606065;
+
+  /* Primary - light on dark */
+  --primary: #fafafa;
+  --primary-foreground: #0a0a0b;
+
+  /* Secondary */
+  --secondary: #1a1a1d;
+  --secondary-foreground: #fafafa;
+
+  /* Muted */
+  --muted: #1a1a1d;
+  --muted-foreground: #a0a0a5;
+
+  /* Accent */
+  --accent: #1a1a1d;
+  --accent-foreground: #fafafa;
+
+  /* Text hierarchy */
+  --text-primary: #fafafa;
+  --text-secondary: #a0a0a5;
+  --text-muted: #606065;
+
+  /* Destructive */
+  --destructive: #ef4444;
+
+  /* Status accents - vibrant for dark mode */
+  --accent-cyan: #06b6d4;
+  --accent-green: #22c55e;
+  --accent-yellow: #eab308;
+  --accent-red: #ef4444;
+  --accent-purple: #8b5cf6;
+
+  /* Accent dim backgrounds */
+  --accent-cyan-dim: rgba(6, 182, 212, 0.1);
+  --accent-green-dim: rgba(34, 197, 94, 0.15);
+  --accent-yellow-dim: rgba(234, 179, 8, 0.15);
+  --accent-red-dim: rgba(239, 68, 68, 0.15);
+  --accent-purple-dim: rgba(139, 92, 246, 0.15);
+
+  /* Charts */
+  --chart-1: #06b6d4;
+  --chart-2: #22c55e;
+  --chart-3: #eab308;
+  --chart-4: #8b5cf6;
+  --chart-5: #ef4444;
+
+  /* Sidebar */
+  --sidebar: #111113;
+  --sidebar-foreground: #fafafa;
+  --sidebar-primary: #06b6d4;
+  --sidebar-primary-foreground: #fafafa;
+  --sidebar-accent: #1a1a1d;
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: #606065;
 }
 
 @layer base {
