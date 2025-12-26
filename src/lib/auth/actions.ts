@@ -54,8 +54,8 @@ export async function signIn(formData: FormData): Promise<AuthResult> {
         p_user_id: data.user.id,
         p_action: 'sign_in',
         p_details: { email: data.user.email },
-        p_ip_address: headersList.get('x-forwarded-for') || null,
-        p_user_agent: headersList.get('user-agent') || null,
+        p_ip_address: headersList.get('x-forwarded-for') ?? undefined,
+        p_user_agent: headersList.get('user-agent') ?? undefined,
       })
     } catch {
       // Audit logging is non-critical, continue on failure
@@ -78,8 +78,8 @@ export async function signOut(): Promise<void> {
       await supabase.rpc('log_audit_entry', {
         p_user_id: user.id,
         p_action: 'sign_out',
-        p_ip_address: headersList.get('x-forwarded-for') || null,
-        p_user_agent: headersList.get('user-agent') || null,
+        p_ip_address: headersList.get('x-forwarded-for') ?? undefined,
+        p_user_agent: headersList.get('user-agent') ?? undefined,
       })
     } catch {
       // Audit logging is non-critical, continue on failure

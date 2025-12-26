@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NPI Manager | Inventory</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #111113;
+            --bg-tertiary: #1a1a1d;
+            --bg-card: #151517;
+            --border-color: #2a2a2e;
+            --border-hover: #3a3a40;
+            --text-primary: #fafafa;
+            --text-secondary: #a0a0a5;
+            --text-muted: #606065;
+            --accent-green: #22c55e;
+            --accent-green-dim: rgba(34, 197, 94, 0.15);
+            --accent-yellow: #eab308;
+            --accent-yellow-dim: rgba(234, 179, 8, 0.15);
+            --accent-red: #ef4444;
+            --accent-red-dim: rgba(239, 68, 68, 0.15);
+            --accent-cyan: #06b6d4;
+            --accent-cyan-dim: rgba(6, 182, 212, 0.1);
+            --accent-purple: #8b5cf6;
+            --accent-purple-dim: rgba(139, 92, 246, 0.15);
+            --font-display: 'Outfit', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-display);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.03;
+            z-index: 1000;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 72px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .logo {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--accent-green) 0%, #15803d 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            top: -5px;
+            right: -5px;
+        }
+
+        .logo svg {
+            width: 24px;
+            height: 24px;
+            color: white;
+        }
+
+        .nav-items {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .nav-item {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            text-decoration: none;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+
+        .nav-item.active {
+            background: var(--accent-cyan-dim);
+            color: var(--accent-cyan);
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: -14px;
+            width: 3px;
+            height: 24px;
+            background: var(--accent-cyan);
+            border-radius: 0 2px 2px 0;
+        }
+
+        .nav-item svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .nav-bottom {
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 72px;
+            padding: 24px;
+            max-width: 1600px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header-left h1 {
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            margin-bottom: 4px;
+        }
+
+        .header-left p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            font-family: var(--font-display);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-cyan) 0%, #0891b2 100%);
+            color: white;
+            box-shadow: 0 4px 20px rgba(6, 182, 212, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(6, 182, 212, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-card);
+            border-color: var(--border-hover);
+        }
+
+        .btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .stat-item:hover {
+            border-color: var(--border-hover);
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .stat-icon.total {
+            background: var(--accent-cyan-dim);
+            color: var(--accent-cyan);
+        }
+
+        .stat-icon.healthy {
+            background: var(--accent-green-dim);
+            color: var(--accent-green);
+        }
+
+        .stat-icon.warning {
+            background: var(--accent-yellow-dim);
+            color: var(--accent-yellow);
+        }
+
+        .stat-icon.critical {
+            background: var(--accent-red-dim);
+            color: var(--accent-red);
+        }
+
+        .stat-icon.value {
+            background: var(--accent-purple-dim);
+            color: var(--accent-purple);
+        }
+
+        .stat-icon svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .stat-content .stat-value {
+            font-family: var(--font-mono);
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -1px;
+            line-height: 1;
+        }
+
+        .stat-content .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .stat-item.total .stat-value { color: var(--accent-cyan); }
+        .stat-item.healthy .stat-value { color: var(--accent-green); }
+        .stat-item.warning .stat-value { color: var(--accent-yellow); }
+        .stat-item.critical .stat-value { color: var(--accent-red); }
+        .stat-item.value .stat-value { color: var(--accent-purple); }
+
+        .controls-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 280px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px 16px 12px 44px;
+            font-size: 14px;
+            color: var(--text-primary);
+            font-family: var(--font-display);
+            transition: all 0.2s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 3px var(--accent-cyan-dim);
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-box svg {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            color: var(--text-muted);
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .filter-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: var(--font-display);
+        }
+
+        .filter-btn:hover {
+            border-color: var(--border-hover);
+            color: var(--text-primary);
+        }
+
+        .filter-btn.active {
+            background: var(--accent-cyan-dim);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .filter-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        select.filter-select {
+            appearance: none;
+            background: var(--bg-card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23606065' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 12px center;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 10px 36px 10px 14px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: var(--font-display);
+            transition: all 0.2s ease;
+        }
+
+        select.filter-select:hover {
+            border-color: var(--border-hover);
+        }
+
+        select.filter-select:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+        }
+
+        .table-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+
+        thead {
+            background: var(--bg-tertiary);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            text-align: left;
+            padding: 14px 16px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        th.sortable {
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.2s ease;
+        }
+
+        th.sortable:hover {
+            color: var(--text-secondary);
+        }
+
+        th.sortable svg {
+            width: 14px;
+            height: 14px;
+            margin-left: 4px;
+            vertical-align: middle;
+            opacity: 0.5;
+        }
+
+        th.sortable.sorted svg {
+            opacity: 1;
+            color: var(--accent-cyan);
+        }
+
+        td {
+            padding: 14px 16px;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr {
+            transition: background 0.15s ease;
+        }
+
+        tr:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .item-name {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .item-category {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .item-category.ingredients {
+            background: rgba(34, 197, 94, 0.1);
+            color: #4ade80;
+        }
+
+        .item-category.packaging {
+            background: rgba(6, 182, 212, 0.1);
+            color: #22d3ee;
+        }
+
+        .item-category.labels {
+            background: rgba(139, 92, 246, 0.1);
+            color: #a78bfa;
+        }
+
+        .item-category.supplies {
+            background: rgba(251, 146, 60, 0.1);
+            color: #fb923c;
+        }
+
+        .stock-cell {
+            font-family: var(--font-mono);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .stock-cell.healthy { color: var(--accent-green); }
+        .stock-cell.warning { color: var(--accent-yellow); }
+        .stock-cell.critical { color: var(--accent-red); }
+
+        .stock-bar {
+            width: 80px;
+            height: 6px;
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .stock-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .stock-bar-fill.healthy { background: var(--accent-green); }
+        .stock-bar-fill.warning { background: var(--accent-yellow); }
+        .stock-bar-fill.critical { background: var(--accent-red); }
+        .stock-bar-fill.over { background: var(--accent-cyan); }
+
+        .location-cell {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .location-cell svg {
+            width: 14px;
+            height: 14px;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .uom-cell {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: lowercase;
+        }
+
+        .cost-cell {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .value-cell {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent-purple);
+        }
+
+        .action-cell {
+            display: flex;
+            gap: 6px;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--border-hover);
+            color: var(--text-secondary);
+        }
+
+        .action-btn.edit:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .action-btn.restock:hover {
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .action-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .table-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-tertiary);
+        }
+
+        .table-info {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .table-info strong {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .pagination {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .page-btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .page-btn:hover {
+            border-color: var(--border-hover);
+            color: var(--text-primary);
+        }
+
+        .page-btn.active {
+            background: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+            color: white;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .page-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .mobile-nav {
+            display: none;
+        }
+
+        @media (max-width: 1200px) {
+            .stats-bar {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 16px;
+            }
+
+            .stats-bar {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+
+            .stat-item {
+                padding: 12px 14px;
+            }
+
+            .stat-content .stat-value {
+                font-size: 20px;
+            }
+
+            .header-actions {
+                width: 100%;
+            }
+
+            .header-actions .btn {
+                flex: 1;
+                justify-content: center;
+            }
+
+            .controls-bar {
+                flex-direction: column;
+            }
+
+            .filter-group {
+                flex-wrap: wrap;
+            }
+
+            .mobile-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: var(--bg-secondary);
+                border-top: 1px solid var(--border-color);
+                padding: 8px 16px 24px;
+                z-index: 100;
+                justify-content: space-around;
+            }
+
+            .mobile-nav .nav-item {
+                flex-direction: column;
+                gap: 4px;
+                width: auto;
+                height: auto;
+                padding: 8px 16px;
+            }
+
+            .mobile-nav .nav-item span {
+                font-size: 10px;
+                color: var(--text-muted);
+            }
+
+            .mobile-nav .nav-item.active span {
+                color: var(--accent-cyan);
+            }
+
+            .mobile-nav .nav-item.active::before {
+                display: none;
+            }
+
+            body {
+                padding-bottom: 80px;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stats-bar {
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .table-container {
+            animation: fadeInUp 0.5s ease 0.1s backwards;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .loading-row td {
+            background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-tertiary) 50%, var(--bg-card) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="noise-overlay"></div>
+    
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+            </div>
+            
+            <nav class="nav-items">
+                <a href="npi-dashboard.html" class="nav-item" title="Dashboard">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7" rx="1"/>
+                        <rect x="14" y="3" width="7" height="7" rx="1"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1"/>
+                        <rect x="14" y="14" width="7" height="7" rx="1"/>
+                    </svg>
+                </a>
+                <a href="#" class="nav-item active" title="Inventory">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 7h-9M14 17H5"/>
+                        <circle cx="17" cy="17" r="3"/>
+                        <circle cx="7" cy="7" r="3"/>
+                    </svg>
+                </a>
+                <a href="#" class="nav-item" title="Products">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                        <line x1="12" y1="22.08" x2="12" y2="12"/>
+                    </svg>
+                </a>
+                <a href="#" class="nav-item" title="Production">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                    </svg>
+                </a>
+                <a href="#" class="nav-item" title="Reports">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10"/>
+                        <line x1="12" y1="20" x2="12" y2="4"/>
+                        <line x1="6" y1="20" x2="6" y2="14"/>
+                    </svg>
+                </a>
+            </nav>
+            
+            <div class="nav-bottom">
+                <a href="#" class="nav-item" title="Settings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                </a>
+            </div>
+        </aside>
+        
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <h1>Inventory Management</h1>
+                    <p>Non-Product Inventory Tracking</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Export
+                    </button>
+                    <button class="btn btn-primary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Add Item
+                    </button>
+                </div>
+            </header>
+            
+            <section class="stats-bar">
+                <div class="stat-item total">
+                    <div class="stat-icon total">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="stat-total">247</div>
+                        <div class="stat-label">Total Items</div>
+                    </div>
+                </div>
+                
+                <div class="stat-item healthy">
+                    <div class="stat-icon healthy">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                            <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="stat-healthy">198</div>
+                        <div class="stat-label">In Stock</div>
+                    </div>
+                </div>
+                
+                <div class="stat-item warning">
+                    <div class="stat-icon warning">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="stat-warning">31</div>
+                        <div class="stat-label">Low Stock</div>
+                    </div>
+                </div>
+                
+                <div class="stat-item critical">
+                    <div class="stat-icon critical">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="stat-critical">18</div>
+                        <div class="stat-label">Critical</div>
+                    </div>
+                </div>
+                
+                <div class="stat-item value">
+                    <div class="stat-icon value">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="stat-value">$24.8K</div>
+                        <div class="stat-label">Stock Value</div>
+                    </div>
+                </div>
+            </section>
+            
+            <div class="controls-bar">
+                <div class="search-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <input type="text" id="search-input" placeholder="Search inventory items...">
+                </div>
+                
+                <div class="filter-group">
+                    <button class="filter-btn active" data-filter="all">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        </svg>
+                        All
+                    </button>
+                    <button class="filter-btn" data-filter="ingredients">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+                        </svg>
+                        Ingredients
+                    </button>
+                    <button class="filter-btn" data-filter="packaging">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                        </svg>
+                        Packaging
+                    </button>
+                    <button class="filter-btn" data-filter="labels">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                            <line x1="7" y1="7" x2="7.01" y2="7"/>
+                        </svg>
+                        Labels
+                    </button>
+                    <button class="filter-btn" data-filter="supplies">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                        </svg>
+                        Supplies
+                    </button>
+                </div>
+                
+                <select class="filter-select" id="location-filter">
+                    <option value="all">All Locations</option>
+                    <option value="Extraction Room">Extraction Room</option>
+                    <option value="Formulation Room">Formulation Room</option>
+                    <option value="Gummy Room">Gummy Room</option>
+                    <option value="Rear Storage">Rear Storage</option>
+                    <option value="Office">Office</option>
+                    <option value="Restroom Storage">Restroom Storage</option>
+                </select>
+                
+                <select class="filter-select" id="status-filter">
+                    <option value="all">All Status</option>
+                    <option value="healthy">In Stock</option>
+                    <option value="warning">Low Stock</option>
+                    <option value="critical">Critical</option>
+                </select>
+            </div>
+            
+            <div class="table-container">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-sort="name">
+                                    Item Name
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="6 9 12 15 18 9"/>
+                                    </svg>
+                                </th>
+                                <th>Category</th>
+                                <th class="sortable" data-sort="count">
+                                    Stock
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="6 9 12 15 18 9"/>
+                                    </svg>
+                                </th>
+                                <th>UOM</th>
+                                <th class="sortable" data-sort="desired">
+                                    Desired
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="6 9 12 15 18 9"/>
+                                    </svg>
+                                </th>
+                                <th>Location</th>
+                                <th class="sortable" data-sort="unitCost">
+                                    Unit Cost
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="6 9 12 15 18 9"/>
+                                    </svg>
+                                </th>
+                                <th class="sortable" data-sort="stockValue">
+                                    Stock Value
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="6 9 12 15 18 9"/>
+                                    </svg>
+                                </th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-table-body">
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="table-footer">
+                    <div class="table-info">
+                        Showing <strong><span id="showing-start">1</span>-<span id="showing-end">25</span></strong> of <strong><span id="total-items">247</span></strong> items
+                    </div>
+                    <div class="pagination">
+                        <button class="page-btn" id="prev-page" disabled>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="15 18 9 12 15 6"/>
+                            </svg>
+                        </button>
+                        <button class="page-btn active">1</button>
+                        <button class="page-btn">2</button>
+                        <button class="page-btn">3</button>
+                        <button class="page-btn">4</button>
+                        <button class="page-btn" id="next-page">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="9 18 15 12 9 6"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <nav class="mobile-nav">
+        <a href="npi-dashboard.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                <rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+            <span>Dashboard</span>
+        </a>
+        <a href="#" class="nav-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+                <path d="M20 7h-9M14 17H5"/>
+                <circle cx="17" cy="17" r="3"/>
+                <circle cx="7" cy="7" r="3"/>
+            </svg>
+            <span>Inventory</span>
+        </a>
+        <a href="#" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            </svg>
+            <span>Products</span>
+        </a>
+        <a href="#" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+            </svg>
+            <span>Production</span>
+        </a>
+    </nav>
+
+    <script>
+        const inventoryData = [
+            { name: "CBD Isolate", category: "Ingredients", count: 3, desired: 5, uom: "kg", unitCost: 320, location: "Extraction Room" },
+            { name: "CBG Isolate", category: "Ingredients", count: 5, desired: 5, uom: "kg", unitCost: 650, location: "Extraction Room" },
+            { name: "CBN Isolate", category: "Ingredients", count: 2.5, desired: 5, uom: "kg", unitCost: 1200, location: "Extraction Room" },
+            { name: "Δ9 Distillate", category: "Ingredients", count: 17, desired: 10, uom: "kg", unitCost: 775, location: "Extraction Room" },
+            { name: "Δ8 Distillate", category: "Ingredients", count: 1, desired: 5, uom: "g", unitCost: 0.48, location: "Extraction Room" },
+            { name: "HHC Distillate", category: "Ingredients", count: 4, desired: 5, uom: "kg", unitCost: 575, location: "Extraction Room" },
+            { name: "Terpenes", category: "Ingredients", count: 18, desired: 20, uom: "oz", unitCost: 53.84, location: "Formulation Room" },
+            { name: "Limonene", category: "Ingredients", count: 1, desired: 3, uom: "bottle", unitCost: 45, location: "Formulation Room" },
+            { name: "Linalool", category: "Ingredients", count: 1, desired: 3, uom: "bottle", unitCost: 45, location: "Formulation Room" },
+            { name: "MCT Oil", category: "Ingredients", count: 4, desired: 10, uom: "gal", unitCost: 28.50, location: "Extraction Room" },
+            { name: "Hemp Seed Oil", category: "Ingredients", count: 2.5, desired: 5, uom: "L", unitCost: 32, location: "Formulation Room" },
+            { name: "Citric Acid", category: "Ingredients", count: 2, desired: 10, uom: "lb", unitCost: 8.50, location: "Gummy Room" },
+            { name: "Pectin", category: "Ingredients", count: 15, desired: 20, uom: "lb", unitCost: 24, location: "Gummy Room" },
+            { name: "Tapioca Syrup", category: "Ingredients", count: 8, desired: 15, uom: "gal", unitCost: 18, location: "Gummy Room" },
+            { name: "Sunflower Lecithin", category: "Ingredients", count: 3, desired: 5, uom: "lb", unitCost: 12, location: "Gummy Room" },
+            { name: "Black Pop Tops", category: "Packaging", count: 1000, desired: 1000, uom: "ea", unitCost: 0.45, location: "Rear Storage" },
+            { name: "Buzzin' Cans", category: "Packaging", count: 650, desired: 1500, uom: "ea", unitCost: 0.85, location: "Rear Storage" },
+            { name: "Buzzin' Plus Cans", category: "Packaging", count: 650, desired: 1500, uom: "ea", unitCost: 0.85, location: "Rear Storage" },
+            { name: "Quad Pack Hydrate Tops", category: "Packaging", count: 788, desired: 1000, uom: "ea", unitCost: 0.15, location: "Rear Storage" },
+            { name: "Activate Mylar", category: "Packaging", count: 2500, desired: 1200, uom: "ea", unitCost: 0.12, location: "Rear Storage" },
+            { name: "Blank Black Mylar (CP)", category: "Packaging", count: 300, desired: 500, uom: "ea", unitCost: 0.18, location: "Rear Storage" },
+            { name: "Blank White Mylar (CP)", category: "Packaging", count: 500, desired: 500, uom: "ea", unitCost: 0.18, location: "Rear Storage" },
+            { name: "Low-dose Blueberry", category: "Packaging", count: 23400, desired: 4000, uom: "ea", unitCost: 0.08, location: "Rear Storage" },
+            { name: "Low-dose Guava", category: "Packaging", count: 22000, desired: 4000, uom: "ea", unitCost: 0.08, location: "Rear Storage" },
+            { name: "Low-dose Strawberry", category: "Packaging", count: 22400, desired: 4000, uom: "ea", unitCost: 0.08, location: "Rear Storage" },
+            { name: "Microdose Blue Raz", category: "Packaging", count: 28900, desired: 2000, uom: "ea", unitCost: 0.08, location: "Rear Storage" },
+            { name: "Microdose Pineapple", category: "Packaging", count: 29000, desired: 2000, uom: "ea", unitCost: 0.08, location: "Rear Storage" },
+            { name: "Rest Mylar", category: "Packaging", count: 1485, desired: 2000, uom: "ea", unitCost: 0.12, location: "Rear Storage" },
+            { name: "Rest Plus Mylar", category: "Packaging", count: 650, desired: 1500, uom: "ea", unitCost: 0.12, location: "Rear Storage" },
+            { name: "Stability Mylar", category: "Packaging", count: 2500, desired: 1200, uom: "ea", unitCost: 0.12, location: "Rear Storage" },
+            { name: "2oz Amber Jars", category: "Packaging", count: 23, desired: 500, uom: "ea", unitCost: 0.65, location: "Extraction Room" },
+            { name: "4oz Amber Jars", category: "Packaging", count: 156, desired: 300, uom: "ea", unitCost: 0.85, location: "Extraction Room" },
+            { name: "1oz Dropper Bottles", category: "Packaging", count: 450, desired: 500, uom: "ea", unitCost: 0.42, location: "Extraction Room" },
+            { name: "Child-Resistant Caps Black", category: "Packaging", count: 156, desired: 500, uom: "ea", unitCost: 0.22, location: "Rear Storage" },
+            { name: "Infuse Coconut Oil Label", category: "Labels", count: 200, desired: 500, uom: "ea", unitCost: 0.10, location: "Extraction Room" },
+            { name: "Infuse Olive Oil Label", category: "Labels", count: 800, desired: 500, uom: "ea", unitCost: 0.10, location: "Extraction Room" },
+            { name: "Balance 1500 Label", category: "Labels", count: 300, desired: 500, uom: "ea", unitCost: 0.10, location: "Extraction Room" },
+            { name: "Balance 750 Label", category: "Labels", count: 300, desired: 500, uom: "ea", unitCost: 0.10, location: "Extraction Room" },
+            { name: "Calm 1500 Label", category: "Labels", count: 1500, desired: 1000, uom: "ea", unitCost: 0.10, location: "Extraction Room" },
+            { name: "Calm 750 Label", category: "Labels", count: 1200, desired: 1000, uom: "ea", unitCost: 0.10, location: "Extraction Room" },
+            { name: "Soothe 1500 Label", category: "Labels", count: 48, desired: 1000, uom: "ea", unitCost: 0.10, location: "Extraction Room" },
+            { name: "Soothe 750 Label", category: "Labels", count: 850, desired: 1000, uom: "ea", unitCost: 0.10, location: "Extraction Room" },
+            { name: "Dream Gummy Label", category: "Labels", count: 2400, desired: 2000, uom: "ea", unitCost: 0.08, location: "Gummy Room" },
+            { name: "Focus Gummy Label", category: "Labels", count: 1800, desired: 2000, uom: "ea", unitCost: 0.08, location: "Gummy Room" },
+            { name: "Relief Gummy Label", category: "Labels", count: 950, desired: 2000, uom: "ea", unitCost: 0.08, location: "Gummy Room" },
+            { name: "20 Micron Filters", category: "Supplies", count: 10, desired: 5, uom: "ea", unitCost: 12.50, location: "Office" },
+            { name: "90 Micron Barrel Filters", category: "Supplies", count: 9, desired: 3, uom: "ea", unitCost: 28, location: "Office" },
+            { name: "Black O-Rings", category: "Supplies", count: 25, desired: 10, uom: "ea", unitCost: 2.50, location: "Rear Storage" },
+            { name: "Metal O-Rings", category: "Supplies", count: 7, desired: 5, uom: "ea", unitCost: 4.50, location: "Rear Storage" },
+            { name: "Coffee Filters", category: "Supplies", count: 2, desired: 2, uom: "box", unitCost: 8, location: "Extraction Room" },
+            { name: "CO2 Tank", category: "Supplies", count: 1, desired: 5, uom: "ea", unitCost: 85, location: "Rear Storage" },
+            { name: "Ethanol", category: "Supplies", count: 150, desired: 50, uom: "L", unitCost: 4.50, location: "Rear Storage" },
+            { name: "Inland 19 Vacuum Oil", category: "Supplies", count: 2, desired: 2.5, uom: "gal", unitCost: 45, location: "Extraction Room" },
+            { name: "Liquid Pump Oil OW-20", category: "Supplies", count: 600, desired: 500, uom: "mL", unitCost: 0.08, location: "Extraction Room" },
+            { name: "Nitrile Gloves (L)", category: "Supplies", count: 8, desired: 10, uom: "box", unitCost: 12, location: "Rear Storage" },
+            { name: "Nitrile Gloves (M)", category: "Supplies", count: 6, desired: 10, uom: "box", unitCost: 12, location: "Rear Storage" },
+            { name: "Lab Coats", category: "Supplies", count: 12, desired: 15, uom: "ea", unitCost: 18, location: "Rear Storage" },
+            { name: "Safety Glasses", category: "Supplies", count: 8, desired: 10, uom: "ea", unitCost: 6.50, location: "Rear Storage" },
+            { name: "Packaging Tape", category: "Supplies", count: 45, desired: 20, uom: "roll", unitCost: 3.50, location: "Rear Storage" },
+            { name: "Printer Paper", category: "Supplies", count: 350, desired: 1000, uom: "sheet", unitCost: 0.02, location: "Office" }
+        ];
+
+        let filteredData = [...inventoryData];
+        let currentPage = 1;
+        const itemsPerPage = 25;
+        let currentSort = { field: null, direction: 'asc' };
+        let currentCategoryFilter = 'all';
+        let currentLocationFilter = 'all';
+        let currentStatusFilter = 'all';
+        let searchQuery = '';
+
+        function getStockStatus(count, desired) {
+            if (!desired || desired === 0) return 'healthy';
+            const ratio = count / desired;
+            if (ratio <= 0.2) return 'critical';
+            if (ratio <= 0.5) return 'warning';
+            return 'healthy';
+        }
+
+        function getStockPercentage(count, desired) {
+            if (!desired || desired === 0) return 100;
+            return Math.min((count / desired) * 100, 150);
+        }
+
+        function formatCurrency(value) {
+            if (value >= 1000) {
+                return '$' + (value / 1000).toFixed(1) + 'K';
+            }
+            return '$' + value.toFixed(2);
+        }
+
+        function calculateStats() {
+            let total = filteredData.length;
+            let healthy = 0, warning = 0, critical = 0;
+            let totalValue = 0;
+
+            filteredData.forEach(item => {
+                const status = getStockStatus(item.count, item.desired);
+                if (status === 'healthy') healthy++;
+                else if (status === 'warning') warning++;
+                else critical++;
+                totalValue += item.count * item.unitCost;
+            });
+
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-healthy').textContent = healthy;
+            document.getElementById('stat-warning').textContent = warning;
+            document.getElementById('stat-critical').textContent = critical;
+            document.getElementById('stat-value').textContent = formatCurrency(totalValue);
+        }
+
+        function applyFilters() {
+            filteredData = inventoryData.filter(item => {
+                const matchesCategory = currentCategoryFilter === 'all' || item.category.toLowerCase() === currentCategoryFilter;
+                const matchesLocation = currentLocationFilter === 'all' || item.location === currentLocationFilter;
+                const status = getStockStatus(item.count, item.desired);
+                const matchesStatus = currentStatusFilter === 'all' || status === currentStatusFilter;
+                const matchesSearch = searchQuery === '' || item.name.toLowerCase().includes(searchQuery.toLowerCase());
+                return matchesCategory && matchesLocation && matchesStatus && matchesSearch;
+            });
+
+            if (currentSort.field) {
+                filteredData.sort((a, b) => {
+                    let aVal = a[currentSort.field];
+                    let bVal = b[currentSort.field];
+                    if (currentSort.field === 'stockValue') {
+                        aVal = a.count * a.unitCost;
+                        bVal = b.count * b.unitCost;
+                    }
+                    if (typeof aVal === 'string') {
+                        return currentSort.direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+                    }
+                    return currentSort.direction === 'asc' ? aVal - bVal : bVal - aVal;
+                });
+            }
+
+            currentPage = 1;
+            calculateStats();
+            renderTable();
+            renderPagination();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('inventory-table-body');
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageData = filteredData.slice(start, end);
+
+            tbody.innerHTML = pageData.map(item => {
+                const status = getStockStatus(item.count, item.desired);
+                const percentage = getStockPercentage(item.count, item.desired);
+                const stockValue = item.count * item.unitCost;
+                const barStatus = percentage > 100 ? 'over' : status;
+
+                return `
+                    <tr>
+                        <td class="item-name">${item.name}</td>
+                        <td><span class="item-category ${item.category.toLowerCase()}">${item.category}</span></td>
+                        <td>
+                            <div class="stock-cell ${status}">${item.count.toLocaleString()}</div>
+                            <div class="stock-bar">
+                                <div class="stock-bar-fill ${barStatus}" style="width: ${Math.min(percentage, 100)}%"></div>
+                            </div>
+                        </td>
+                        <td class="uom-cell">${item.uom}</td>
+                        <td class="stock-cell">${item.desired ? item.desired.toLocaleString() : '—'}</td>
+                        <td>
+                            <div class="location-cell">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                    <circle cx="12" cy="10" r="3"/>
+                                </svg>
+                                ${item.location}
+                            </div>
+                        </td>
+                        <td class="cost-cell">${item.unitCost >= 1 ? '$' + item.unitCost.toFixed(2) : '$' + item.unitCost.toFixed(3)}</td>
+                        <td class="value-cell">${formatCurrency(stockValue)}</td>
+                        <td>
+                            <div class="action-cell">
+                                <button class="action-btn edit" title="Edit">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                </button>
+                                <button class="action-btn restock" title="Restock">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="12" y1="5" x2="12" y2="19"/>
+                                        <line x1="5" y1="12" x2="19" y2="12"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.getElementById('showing-start').textContent = filteredData.length > 0 ? start + 1 : 0;
+            document.getElementById('showing-end').textContent = Math.min(end, filteredData.length);
+            document.getElementById('total-items').textContent = filteredData.length;
+        }
+
+        function renderPagination() {
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            const pagination = document.querySelector('.pagination');
+            
+            let paginationHTML = `
+                <button class="page-btn" id="prev-page" ${currentPage === 1 ? 'disabled' : ''}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="15 18 9 12 15 6"/>
+                    </svg>
+                </button>
+            `;
+
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+            if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                paginationHTML += `<button class="page-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+            }
+
+            paginationHTML += `
+                <button class="page-btn" id="next-page" ${currentPage === totalPages ? 'disabled' : ''}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 18 15 12 9 6"/>
+                    </svg>
+                </button>
+            `;
+
+            pagination.innerHTML = paginationHTML;
+
+            pagination.querySelectorAll('.page-btn[data-page]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentPage = parseInt(btn.dataset.page);
+                    renderTable();
+                    renderPagination();
+                });
+            });
+
+            document.getElementById('prev-page')?.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable();
+                    renderPagination();
+                }
+            });
+
+            document.getElementById('next-page')?.addEventListener('click', () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderTable();
+                    renderPagination();
+                }
+            });
+        }
+
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentCategoryFilter = btn.dataset.filter;
+                applyFilters();
+            });
+        });
+
+        document.getElementById('location-filter').addEventListener('change', (e) => {
+            currentLocationFilter = e.target.value;
+            applyFilters();
+        });
+
+        document.getElementById('status-filter').addEventListener('change', (e) => {
+            currentStatusFilter = e.target.value;
+            applyFilters();
+        });
+
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            applyFilters();
+        });
+
+        document.querySelectorAll('th.sortable').forEach(th => {
+            th.addEventListener('click', () => {
+                const field = th.dataset.sort;
+                if (currentSort.field === field) {
+                    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSort.field = field;
+                    currentSort.direction = 'asc';
+                }
+
+                document.querySelectorAll('th.sortable').forEach(h => h.classList.remove('sorted'));
+                th.classList.add('sorted');
+                
+                applyFilters();
+            });
+        });
+
+        calculateStats();
+        renderTable();
+        renderPagination();
+    </script>
+</body>
+</html>
