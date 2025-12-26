@@ -83,6 +83,8 @@ export function InventoryContent({ initialItems, categories, subCategories, loca
       <ReviewOnboarding
         open={showReview}
         onOpenChange={setShowReview}
+        categories={categories}
+        subCategories={subCategories}
         locations={locations}
         onComplete={handleReviewComplete}
       />

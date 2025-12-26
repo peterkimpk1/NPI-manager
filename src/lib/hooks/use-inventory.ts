@@ -13,7 +13,7 @@ export function useInventory(initialItems: NpiItem[]) {
     setIsLoading(true)
     try {
       const { data } = await supabase
-        .from('npi_items')
+        .from('npi_items_view')
         .select('*')
         .eq('is_active', true)
         .order('name')
@@ -31,17 +31,17 @@ export function useInventory(initialItems: NpiItem[]) {
         { event: '*', schema: 'public', table: 'npi_items' },
         async (payload) => {
           if (payload.eventType === 'INSERT') {
-            // Fetch with joins
+            // Fetch from view to get denormalized data
             const { data } = await supabase
-              .from('npi_items')
-              .select('*, category:categories(*), location:locations(*)')
+              .from('npi_items_view')
+              .select('*')
               .eq('id', payload.new.id)
               .single()
             if (data) setItems(prev => [...prev, data as NpiItem])
           } else if (payload.eventType === 'UPDATE') {
             const { data } = await supabase
-              .from('npi_items')
-              .select('*, category:categories(*), location:locations(*)')
+              .from('npi_items_view')
+              .select('*')
               .eq('id', payload.new.id)
               .single()
             if (data) {

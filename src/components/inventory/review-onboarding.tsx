@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -18,13 +18,16 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
-import { Check, X, Archive, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import { Check, Archive, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import type { Category, SubCategory } from '@/types/inventory'
 
 interface ReviewItem {
   id: string
   name: string
+  category_id: string
   category_name: string
+  sub_category_id: string | null
   sub_category_name: string | null
   location_name: string
   count: number
@@ -39,6 +42,8 @@ interface ReviewItem {
 interface ReviewOnboardingProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  categories: Category[]
+  subCategories: SubCategory[]
   locations: { id: string; name: string }[]
   onComplete: () => void
 }
@@ -46,6 +51,8 @@ interface ReviewOnboardingProps {
 export function ReviewOnboarding({
   open,
   onOpenChange,
+  categories,
+  subCategories,
   locations,
   onComplete,
 }: ReviewOnboardingProps) {
@@ -60,7 +67,15 @@ export function ReviewOnboarding({
   const [uom, setUom] = useState('')
   const [desiredCount, setDesiredCount] = useState('')
   const [locationId, setLocationId] = useState('')
+  const [categoryId, setCategoryId] = useState('')
+  const [subCategoryId, setSubCategoryId] = useState('')
   const [source, setSource] = useState('')
+
+  // Filter sub-categories based on selected category
+  const filteredSubCategories = useMemo(() => {
+    if (!categoryId) return []
+    return subCategories.filter(sc => sc.category_id === categoryId)
+  }, [subCategories, categoryId])
 
   const currentItem = items[currentIndex]
   const progress = items.length > 0 ? ((currentIndex + 1) / items.length) * 100 : 0
@@ -78,9 +93,49 @@ export function ReviewOnboarding({
       setUom(currentItem.uom || 'ea')
       setDesiredCount(currentItem.desired_count?.toString() || '')
       setLocationId(locations.find(l => l.name === currentItem.location_name)?.id || '')
+      setCategoryId(currentItem.category_id || '')
+      setSubCategoryId(currentItem.sub_category_id || '')
       setSource(currentItem.source || '')
     }
   }, [currentItem, locations])
+
+  // Keyboard navigation
+  useEffect(() => {
+    if (!open || !currentItem || saving) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is typing in an input field
+      const activeElement = document.activeElement
+      const isInputFocused = activeElement?.tagName === 'INPUT' ||
+                             activeElement?.tagName === 'TEXTAREA' ||
+                             activeElement?.getAttribute('role') === 'combobox'
+
+      if (isInputFocused) return
+
+      switch (e.key) {
+        case 'Enter':
+          e.preventDefault()
+          handleAction('complete')
+          break
+        case 'ArrowLeft':
+          e.preventDefault()
+          if (currentIndex > 0) setCurrentIndex(currentIndex - 1)
+          break
+        case 'ArrowRight':
+          e.preventDefault()
+          if (currentIndex < items.length - 1) setCurrentIndex(currentIndex + 1)
+          break
+        case 'a':
+        case 'A':
+          e.preventDefault()
+          handleAction('archive')
+          break
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [open, currentItem, saving, currentIndex, items.length])
 
   async function fetchReviewItems() {
     setLoading(true)
@@ -109,6 +164,8 @@ export function ReviewOnboarding({
         uom,
         desired_count: desiredCount ? parseFloat(desiredCount) : null,
         location_id: locationId || null,
+        category_id: categoryId || null,
+        sub_category_id: subCategoryId || null,
         source: source || null,
       } : undefined
 
@@ -156,6 +213,9 @@ export function ReviewOnboarding({
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[600px] bg-[var(--bg-card)] border-[var(--border)]">
+          <DialogHeader>
+            <DialogTitle className="sr-only">Loading review items</DialogTitle>
+          </DialogHeader>
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-[var(--accent-cyan)]" />
           </div>
@@ -226,6 +286,46 @@ export function ReviewOnboarding({
 
             {/* Editable fields */}
             <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[var(--text-secondary)]">Category</Label>
+                <Select
+                  value={categoryId}
+                  onValueChange={(value) => {
+                    setCategoryId(value)
+                    setSubCategoryId('') // Reset sub-category when category changes
+                  }}
+                >
+                  <SelectTrigger className="bg-[var(--bg-tertiary)] border-[var(--border)] text-[var(--text-primary)]">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[var(--bg-card)] border-[var(--border)]">
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[var(--text-secondary)]">Sub-Category</Label>
+                <Select
+                  value={subCategoryId}
+                  onValueChange={setSubCategoryId}
+                  disabled={!categoryId || filteredSubCategories.length === 0}
+                >
+                  <SelectTrigger className="bg-[var(--bg-tertiary)] border-[var(--border)] text-[var(--text-primary)] disabled:opacity-50">
+                    <SelectValue placeholder={categoryId ? "Select sub-category" : "Select category first"} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[var(--bg-card)] border-[var(--border)]">
+                    {filteredSubCategories.map((sc) => (
+                      <SelectItem key={sc.id} value={sc.id}>
+                        {sc.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="space-y-2">
                 <Label className="text-[var(--text-secondary)]">Current Stock</Label>
                 <Input
@@ -335,16 +435,7 @@ export function ReviewOnboarding({
                 >
                   <Archive className="h-4 w-4 mr-1" />
                   Not In Use
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleAction('skip')}
-                  disabled={saving}
-                  className="border-[var(--border)] text-[var(--text-secondary)]"
-                >
-                  <X className="h-4 w-4 mr-1" />
-                  Skip
+                  <kbd className="ml-1.5 text-xs opacity-60">(A)</kbd>
                 </Button>
                 <Button
                   size="sm"
@@ -358,6 +449,7 @@ export function ReviewOnboarding({
                     <>
                       <Check className="h-4 w-4 mr-1" />
                       Confirm & Next
+                      <kbd className="ml-1.5 text-xs opacity-60">(↵)</kbd>
                     </>
                   )}
                 </Button>
