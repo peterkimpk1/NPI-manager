@@ -9,6 +9,20 @@ export function useInventory(initialItems: NpiItem[]) {
   const [isLoading, setIsLoading] = useState(false)
   const supabase = useMemo(() => createClient(), [])
 
+  async function refetch() {
+    setIsLoading(true)
+    try {
+      const { data } = await supabase
+        .from('npi_items')
+        .select('*')
+        .eq('is_active', true)
+        .order('name')
+      if (data) setItems(data as NpiItem[])
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   useEffect(() => {
     const channel = supabase
       .channel('npi_items_changes')
@@ -47,7 +61,7 @@ export function useInventory(initialItems: NpiItem[]) {
     }
   }, [supabase])
 
-  return { items, setItems, isLoading }
+  return { items, setItems, isLoading, refetch }
 }
 
 export function getStockStatus(count: number, desired?: number | null): StockStatus {

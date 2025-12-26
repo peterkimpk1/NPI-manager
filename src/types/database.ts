@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       audit_log: {
@@ -106,6 +81,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "bom_items_npi_item_id_fkey"
+            columns: ["npi_item_id"]
+            isOneToOne: false
+            referencedRelation: "npi_items_view"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "bom_items_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
@@ -166,6 +148,13 @@ export type Database = {
             columns: ["npi_item_id"]
             isOneToOne: false
             referencedRelation: "npi_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inbound_items_npi_item_id_fkey"
+            columns: ["npi_item_id"]
+            isOneToOne: false
+            referencedRelation: "npi_items_view"
             referencedColumns: ["id"]
           },
           {
@@ -239,10 +228,21 @@ export type Database = {
           gram_conversion: number | null
           id: string
           is_active: boolean | null
+          lead_time: string | null
           location: string | null
           location_id: string | null
           name: string
+          needs_review: boolean | null
+          notes: string | null
+          pkg_size: number | null
+          price: number | null
           reorder_point: number | null
+          review_source: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source: string | null
+          staff: string | null
+          sub_category_id: string | null
           unit_cost: number
           uom: string
           updated_at: string | null
@@ -258,10 +258,21 @@ export type Database = {
           gram_conversion?: number | null
           id?: string
           is_active?: boolean | null
+          lead_time?: string | null
           location?: string | null
           location_id?: string | null
           name: string
+          needs_review?: boolean | null
+          notes?: string | null
+          pkg_size?: number | null
+          price?: number | null
           reorder_point?: number | null
+          review_source?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string | null
+          staff?: string | null
+          sub_category_id?: string | null
           unit_cost?: number
           uom: string
           updated_at?: string | null
@@ -277,10 +288,21 @@ export type Database = {
           gram_conversion?: number | null
           id?: string
           is_active?: boolean | null
+          lead_time?: string | null
           location?: string | null
           location_id?: string | null
           name?: string
+          needs_review?: boolean | null
+          notes?: string | null
+          pkg_size?: number | null
+          price?: number | null
           reorder_point?: number | null
+          review_source?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string | null
+          staff?: string | null
+          sub_category_id?: string | null
           unit_cost?: number
           uom?: string
           updated_at?: string | null
@@ -299,6 +321,13 @@ export type Database = {
             columns: ["location_id"]
             isOneToOne: false
             referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "npi_items_sub_category_id_fkey"
+            columns: ["sub_category_id"]
+            isOneToOne: false
+            referencedRelation: "sub_categories"
             referencedColumns: ["id"]
           },
         ]
@@ -411,11 +440,107 @@ export type Database = {
             referencedRelation: "npi_items"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "stock_movements_npi_item_id_fkey"
+            columns: ["npi_item_id"]
+            isOneToOne: false
+            referencedRelation: "npi_items_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sub_categories: {
+        Row: {
+          category_id: string
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sub_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
     Views: {
-      [_ in never]: never
+      npi_items_view: {
+        Row: {
+          category: string | null
+          category_color: string | null
+          category_id: string | null
+          category_name: string | null
+          count: number | null
+          created_at: string | null
+          created_by: string | null
+          desired_count: number | null
+          gram_conversion: number | null
+          id: string | null
+          is_active: boolean | null
+          lead_time: string | null
+          location: string | null
+          location_id: string | null
+          location_name: string | null
+          name: string | null
+          needs_review: boolean | null
+          notes: string | null
+          pkg_size: number | null
+          price: number | null
+          reorder_point: number | null
+          review_source: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source: string | null
+          staff: string | null
+          stock_status: string | null
+          stock_value: number | null
+          sub_category_id: string | null
+          sub_category_name: string | null
+          unit_cost: number | null
+          uom: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "npi_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "npi_items_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "npi_items_sub_category_id_fkey"
+            columns: ["sub_category_id"]
+            isOneToOne: false
+            referencedRelation: "sub_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       adjust_stock: {
@@ -430,10 +555,21 @@ export type Database = {
           gram_conversion: number | null
           id: string
           is_active: boolean | null
+          lead_time: string | null
           location: string | null
           location_id: string | null
           name: string
+          needs_review: boolean | null
+          notes: string | null
+          pkg_size: number | null
+          price: number | null
           reorder_point: number | null
+          review_source: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source: string | null
+          staff: string | null
+          sub_category_id: string | null
           unit_cost: number
           uom: string
           updated_at: string | null
@@ -446,6 +582,46 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      complete_item_review: {
+        Args: { p_item_id: string; p_updates?: Json }
+        Returns: {
+          category: string
+          category_id: string | null
+          count: number
+          created_at: string | null
+          created_by: string | null
+          desired_count: number | null
+          gram_conversion: number | null
+          id: string
+          is_active: boolean | null
+          lead_time: string | null
+          location: string | null
+          location_id: string | null
+          name: string
+          needs_review: boolean | null
+          notes: string | null
+          pkg_size: number | null
+          price: number | null
+          reorder_point: number | null
+          review_source: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source: string | null
+          staff: string | null
+          sub_category_id: string | null
+          unit_cost: number
+          uom: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "npi_items"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      is_admin: { Args: { user_id: string }; Returns: boolean }
       log_audit_entry: {
         Args: {
           p_action: string
@@ -470,10 +646,60 @@ export type Database = {
           gram_conversion: number | null
           id: string
           is_active: boolean | null
+          lead_time: string | null
           location: string | null
           location_id: string | null
           name: string
+          needs_review: boolean | null
+          notes: string | null
+          pkg_size: number | null
+          price: number | null
           reorder_point: number | null
+          review_source: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source: string | null
+          staff: string | null
+          sub_category_id: string | null
+          unit_cost: number
+          uom: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "npi_items"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      skip_item_review: {
+        Args: { p_deactivate?: boolean; p_item_id: string }
+        Returns: {
+          category: string
+          category_id: string | null
+          count: number
+          created_at: string | null
+          created_by: string | null
+          desired_count: number | null
+          gram_conversion: number | null
+          id: string
+          is_active: boolean | null
+          lead_time: string | null
+          location: string | null
+          location_id: string | null
+          name: string
+          needs_review: boolean | null
+          notes: string | null
+          pkg_size: number | null
+          price: number | null
+          reorder_point: number | null
+          review_source: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source: string | null
+          staff: string | null
+          sub_category_id: string | null
           unit_cost: number
           uom: string
           updated_at: string | null
@@ -614,9 +840,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },

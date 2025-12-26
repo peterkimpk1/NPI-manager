@@ -3,9 +3,11 @@ import { z } from 'zod'
 export const npiItemSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
   category_id: z.string().uuid('Select a category'),
+  sub_category_id: z.string().uuid().optional().nullable(),
   location_id: z.string().uuid('Select a location'),
   count: z.coerce.number().min(0, 'Count cannot be negative'),
   uom: z.string().min(1, 'Unit of measure is required'),
+  pkg_size: z.coerce.number().min(0).optional().nullable(),
   desired_count: z.coerce.number().min(0).optional().nullable(),
   reorder_point: z.coerce.number().min(0).optional().nullable(),
   unit_cost: z.coerce.number().min(0, 'Cost cannot be negative'),

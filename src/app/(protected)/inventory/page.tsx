@@ -3,12 +3,13 @@ import { Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { StatsBar } from '@/components/inventory/stats-bar'
 import { InventoryContent } from './inventory-content'
-import { getInventoryItems, getCategories, getLocations, getInventoryStats } from '@/lib/actions/inventory'
+import { getInventoryItems, getCategories, getLocations, getSubCategories, getInventoryStats } from '@/lib/actions/inventory'
 
 export default async function InventoryPage() {
-  const [items, categories, locations] = await Promise.all([
+  const [items, categories, subCategories, locations] = await Promise.all([
     getInventoryItems(),
     getCategories(),
+    getSubCategories(),
     getLocations(),
   ])
 
@@ -35,6 +36,7 @@ export default async function InventoryPage() {
         <InventoryContent
           initialItems={items}
           categories={categories}
+          subCategories={subCategories}
           locations={locations}
         />
       </Suspense>
