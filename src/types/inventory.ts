@@ -70,6 +70,7 @@ export type StockStatus = 'healthy' | 'warning' | 'critical'
 export interface InventoryFilters {
   search: string
   category: string | null
+  subCategory: string | null
   location: string | null
   status: StockStatus | null
 }

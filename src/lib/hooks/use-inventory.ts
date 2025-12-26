@@ -90,6 +90,11 @@ export function filterItems(
       return false
     }
 
+    // Sub-category filter
+    if (filters.subCategory && item.sub_category_id !== filters.subCategory) {
+      return false
+    }
+
     // Location filter
     if (filters.location && item.location_id !== filters.location) {
       return false
