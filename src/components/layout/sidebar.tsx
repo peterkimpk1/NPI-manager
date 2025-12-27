@@ -1,7 +1,10 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useTheme } from 'next-themes'
 import { cn } from '@/lib/utils'
 import {
   LayoutDashboard,
@@ -59,12 +62,26 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { theme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const logoSrc = mounted && theme === 'dark' ? '/logo-b.webp' : '/logo.webp'
 
   return (
     <aside className="hidden md:flex w-64 flex-col bg-bg-secondary border-r border-border-custom min-h-screen">
-      <div className="h-16 px-6 border-b border-border-custom flex items-center">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <span className="text-xl font-bold text-accent-cyan font-display">NPI Manager</span>
+      <div className="h-16 px-6 border-b border-border-custom flex items-center justify-center">
+        <Link href="/dashboard" className="relative h-10 w-40">
+          <Image
+            src={logoSrc}
+            alt="NPI Manager"
+            fill
+            priority
+            className="object-contain"
+          />
         </Link>
       </div>
 
